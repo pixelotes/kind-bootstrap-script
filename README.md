@@ -16,34 +16,27 @@ This script sets up a local Kubernetes playground environment using Kind (Kubern
    - HTTP available on port 30080
    - HTTPS available on port 30443
 
-4. **Retrieves Admin Password**:
+4. **Deploys Applications**:
+   - Installs a predefined list of applications via ArgoCD manifests
+   - Current applications: external-secrets-operator, cert-manager, metrics-server, nginx-ingress
+
+5. **Retrieves Admin Password**:
    - Waits for the initial admin secret to be created
    - Displays the ArgoCD admin password
 
-5. **Deploys Applications**:
-   - Installs a predefined list of applications via ArgoCD manifests
-   - Current applications: external-secrets-operator, cert-manager, metrics-server, nginx-ingress
 
 ## Prerequisites
 
 - Docker installed and running
 - Kind CLI installed
 - kubectl installed
-- Directory structure with required configuration files:
-  ```
-  ./config/kind-config.yaml
-  ./manifests/argocd.yaml
-  ./argocd/external-secrets-operator.yaml
-  ./argocd/cert-manager.yaml
-  ./argocd/metrics-server.yaml
-  ./argocd/nginx-ingress.yaml
-  ```
 
 ## Usage
 
-1. Make the script executable:
+1. Make the scripts executable:
    ```bash
    chmod +x start-cluster.sh
+   chmod +x stop-cluster.sh
    ```
 
 2. Run the script:
@@ -52,9 +45,20 @@ This script sets up a local Kubernetes playground environment using Kind (Kubern
    ```
 
 3. Access ArgoCD UI:
-   - URL: `http://localhost:30080` or `https://localhost:30443`
+   - URL: `http://<container_ip>:30080` or `https://<container_ip>:30443`
    - Username: `admin`
    - Password: (displayed by the script)
+  
+> ℹ️ **Info**  
+> If using orbstack instead of docker, you can access from:
+> ```bash
+> http://k8s-playground-control-plane.orb.local:30080
+> ```
+
+4. Delete the cluster:
+5. ```bash
+   ./stop-cluster.sh
+   ```
 
 ## Creating Aliases
 
@@ -62,18 +66,18 @@ To create convenient command aliases, use symbolic links:
 
 ```bash
 # Create start-cluster alias
-ln -s /full/path/to/your/script.sh /usr/local/bin/start-cluster
+ln /full/path/to/your/start-cluster.sh /usr/local/bin/start-cluster
 
 # Create stop-cluster alias (assuming you have a stop script)
-ln -s /full/path/to/your/stop-script.sh /usr/local/bin/stop-cluster
+ln /full/path/to/your/stop-cluster.sh /usr/local/bin/stop-cluster
 
-# Alternative: Add to your local bin directory
-mkdir -p ~/bin
-ln -s /full/path/to/your/script.sh ~/bin/start-cluster
-ln -s /full/path/to/your/stop-script.sh ~/bin/stop-cluster
+# Alternative: Add an alias to your ~/.bashrc (or ~/.zshrc if you use Zsh)
+alias start-cluster="/full/path/to/your/start-cluster.sh"
+alias stop-cluster="/full/path/to/your/stop-cluster.sh"
 
-# Make sure ~/bin is in your PATH (add to ~/.bashrc or ~/.zshrc if needed)
-export PATH="$HOME/bin:$PATH"
+Then reload your shell config:
+
+source ~/.bashrc
 ```
 
 After creating the aliases, you can simply run:
@@ -110,15 +114,6 @@ To add new applications to the deployment:
    ```
 
 3. **Important**: The application name in the array must match the filename (without .yaml extension) in the `./argocd/` directory.
-
-## Stopping the Cluster
-
-To stop and delete the cluster:
-```bash
-kind delete cluster --name k8s-playground
-```
-
-Consider creating a separate `stop-cluster.sh` script with this command for convenience.
 
 ## Troubleshooting
 
