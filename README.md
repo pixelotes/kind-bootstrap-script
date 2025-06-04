@@ -55,8 +55,8 @@ This script sets up a local Kubernetes playground environment using Kind (Kubern
 > http://k8s-playground-control-plane.orb.local:30080
 > ```
 
-4. Delete the cluster:
-5. ```bash
+4. Stop and delete the cluster:
+   ```bash
    ./stop-cluster.sh
    ```
 
