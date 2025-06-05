@@ -22,7 +22,7 @@ components=(
     "argocd-application-controller" 
     "argocd-repo-server"
     "argocd-applicationset-controller"
-    "rgocd-notifications-controller"
+    "argocd-notifications-controller"
 )
 
 for component in "${components[@]}"; do
