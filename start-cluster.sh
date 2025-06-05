@@ -4,7 +4,7 @@
 SCRIPT_DIR="$HOME/Personal/kind-cluster"
 CLUSTER_NAME="k8s-playground"
 
-kind create cluster --name ${CLUSTER_NAME} --config ${SCRIPT_DIR}/config/kind-config.yaml
+kind create cluster --name "${CLUSTER_NAME}" --config "${SCRIPT_DIR}"/config/kind-config.yaml
 
 # Install argocd
 echo ""
@@ -12,9 +12,9 @@ echo "=========="
 echo "= ARGOCD ="
 echo "=========="
 
-kubectl config use-context kind-${CLUSTER_NAME} && \
+kubectl config use-context kind-"${CLUSTER_NAME}" && \
 kubectl create namespace argocd && \
-kubectl apply -n argocd -f ${SCRIPT_DIR}/manifests/argocd.yaml
+kubectl apply -n argocd -f "${SCRIPT_DIR}"/manifests/argocd.yaml
 
 # Wait until argocd is fully ready
 components=(
@@ -29,7 +29,7 @@ for component in "${components[@]}"; do
     echo "Waiting for $component..."
     kubectl wait --namespace argocd \
       --for=condition=ready pod \
-      --selector=app.kubernetes.io/name=${component} \
+      --selector=app.kubernetes.io/name="${component}" \
       --timeout=90s
 done
 
