@@ -1,0 +1,7 @@
+# .yamllint configuration file
+extends: default
+
+ignore: |
+  .github/
+  *.sh
+  *.md
