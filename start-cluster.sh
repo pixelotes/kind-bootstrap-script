@@ -1,10 +1,21 @@
 #!/bin/bash
 
 # Get the directory where this script is located
-SCRIPT_DIR="$HOME/Personal/kind-cluster"
+#!/bin/bash
+SCRIPT_CALLED_AS="$0"
+SCRIPT_REAL_PATH=$(readlink -f "$0")
+
+if [ "$SCRIPT_CALLED_AS" != "$SCRIPT_REAL_PATH" ]; then
+    echo "Script is symlinked!"
+    echo "Called as: $SCRIPT_CALLED_AS"
+    echo "Real path: $SCRIPT_REAL_PATH"
+else
+    echo "Script is not symlinked"
+fi
+
 CLUSTER_NAME="k8s-playground"
 
-kind create cluster --name "${CLUSTER_NAME}" --config "${SCRIPT_DIR}"/config/kind-config.yaml
+kind create cluster --name "${CLUSTER_NAME}" --config "${SCRIPT_REAL_PATH}"/config/kind-config.yaml
 
 # Install argocd
 echo ""
@@ -14,7 +25,7 @@ echo "=========="
 
 kubectl config use-context kind-"${CLUSTER_NAME}" && \
 kubectl create namespace argocd && \
-kubectl apply -n argocd -f "${SCRIPT_DIR}"/manifests/argocd.yaml
+kubectl apply -n argocd -f "${SCRIPT_REAL_PATH}"/manifests/argocd.yaml
 
 # Wait until argocd is fully ready
 components=(
@@ -63,5 +74,5 @@ apps=(
 
 for app in "${apps[@]}"; do
     echo "Installing $app..."
-    kubectl apply -f "${SCRIPT_DIR}/argocd/${app}.yaml"
+    kubectl apply -f "${SCRIPT_REAL_PATH}/argocd/${app}.yaml"
 done
