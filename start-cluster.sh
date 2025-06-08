@@ -69,7 +69,7 @@ echo "========================"
 apps=(
     "external-secrets-operator"
     "cert-manager" 
-    "metrics-server"
+    "kube-state-metrics"
     "nginx-ingress"
 )
 
