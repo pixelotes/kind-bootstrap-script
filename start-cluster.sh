@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Get the directory where this script is located
-#!/bin/bash
 SCRIPT_CALLED_AS="$0"
 SCRIPT_REAL_PATH=$(readlink -f "$0")
 SCRIPT_DIR=$(dirname "$SCRIPT_REAL_PATH")
