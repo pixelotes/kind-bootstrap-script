@@ -1,4 +1,3 @@
-
 ---
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
@@ -13,7 +12,5 @@ nodes:
         # TCP protocol
         protocol: TCP
         # Default listen address
-        listenAddress: "0.0.0.0"
+        listenAddress: 0.0.0.0
   - role: worker
-
-
