@@ -1,3 +1,4 @@
+---
 # This manifest written by Jolene Engo <dev.toaster@gmail.com>
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -14,10 +15,9 @@ spec:
     helm:
       parameters:
         - name: installCRDs
-          value: "true"
+          value: 'true'
     repoURL: https://charts.jetstack.io
     targetRevision: v1.13.2
   syncPolicy:
     automated: {}
-    syncOptions:
-      - CreateNamespace=true
+    syncOptions: [CreateNamespace=true]

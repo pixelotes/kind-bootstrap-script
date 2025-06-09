@@ -1,10 +1,10 @@
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: kube-state-metrics
   namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
+  finalizers: [resources-finalizer.argocd.argoproj.io]
 spec:
   project: default
   source:
@@ -34,9 +34,7 @@ spec:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=false
-      - ServerSideApply=true
+    syncOptions: [CreateNamespace=false, ServerSideApply=true]
     retry:
       limit: 5
       backoff:
@@ -46,5 +44,4 @@ spec:
   ignoreDifferences:
     - group: apps
       kind: Deployment
-      jsonPointers:
-        - /spec/replicas
+      jsonPointers: [/spec/replicas]
