@@ -1,3 +1,4 @@
+---
 name: Shell Script Linter
 
 on: [push, pull_request]
