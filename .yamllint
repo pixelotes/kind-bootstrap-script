@@ -2,6 +2,7 @@
 extends: default
 
 ignore: |
+  .manifests/
   .github/
   *.sh
   *.md
