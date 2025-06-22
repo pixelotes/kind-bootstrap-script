@@ -71,6 +71,7 @@ apps=(
     "cert-manager" 
     "metrics-server"
     "nginx-ingress"
+    "falco"
 )
 
 for app in "${apps[@]}"; do
