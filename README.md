@@ -18,7 +18,7 @@ This script sets up a local Kubernetes playground environment using Kind (Kubern
 
 4. **Deploys Applications**:
    - Installs a predefined list of applications via ArgoCD manifests
-   - Current applications: external-secrets-operator, cert-manager, metrics-server, nginx-ingress
+   - Current applications: external-secrets-operator, cert-manager, metrics-server, nginx-ingress, falco
 
 5. **Retrieves Admin Password**:
    - Waits for the initial admin secret to be created
