@@ -80,6 +80,8 @@ apps=(
     "falco"
     "victorialogs"
     "victoriametrics"
+    "k8s-dashboard"
+    "kyverno"
 )
 
 for app in "${apps[@]}"; do
