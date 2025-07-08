@@ -17,6 +17,12 @@ CLUSTER_NAME="k8s-playground"
 
 kind create cluster --name "${CLUSTER_NAME}" --config "${SCRIPT_DIR}"/config/kind-config.yaml
 
+# Adjust kind params for victorialogs
+docker exec "${CLUSTER_NAME}-control-plane" sh -c "sysctl -w fs.inotify.max_user_watches=524288"
+docker exec "${CLUSTER_NAME}-control-plane" sh -c "sysctl -w fs.inotify.max_user_instances=512"
+docker exec "${CLUSTER_NAME}-worker" sh -c "sysctl -w fs.inotify.max_user_watches=524288"
+docker exec "${CLUSTER_NAME}-worker" sh -c "sysctl -w fs.inotify.max_user_instances=512"
+
 # Install argocd
 echo ""
 echo "=========="
@@ -72,6 +78,8 @@ apps=(
     "metrics-server"
     "nginx-ingress"
     "falco"
+    "victorialogs"
+    "victoriametrics"
 )
 
 for app in "${apps[@]}"; do
