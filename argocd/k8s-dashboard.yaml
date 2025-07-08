@@ -1,0 +1,55 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k8s-dashboard
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  destination:
+    namespace: k8s-dashboard
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    repoURL: https://kubernetes.github.io/dashboard/
+    targetRevision: 5.10.0
+    chart: kubernetes-dashboard
+    helm:
+      values: |
+        replicaCount: 1
+        extraArgs:
+          - --namespace=k8s-dashboard
+          - --insecure-bind-address=0.0.0.0
+          - --insecure-port=9090
+          - --metrics-provider=non
+          - --api-log-level=NONE
+        protocolHttp: true
+        service:
+          externalPort: 80
+        serviceAccount:
+          name: kubernetes-dashboard
+        ingress:
+          enabled: false
+          annotations:
+            kubernetes.io/ingress.class: "nginx"
+          paths:
+            - /k8s-dashboard
+        rbac:
+          clusterRoleMetrics: false
+          clusterReadOnlyRole: true
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - Validate=false
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
