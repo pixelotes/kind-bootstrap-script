@@ -7,3 +7,11 @@ ignore: |
   .github/
   *.sh
   *.md
+
+rules:
+  line-length:
+    max: 200
+    level: warning
+  comments-indentation: disable
+  truthy:
+    check-keys: false
