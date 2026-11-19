@@ -11,17 +11,14 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    repoURL: https://charts.bitnami.com/bitnami
-    targetRevision: 6.4.5
+    repoURL: https://kubernetes-sigs.github.io/metrics-server/
+    targetRevision: 3.14.0
     chart: metrics-server
     helm:
       values: |
-        apiService:
-          create: true
-        extraArgs:
-          - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
-          - --kubelet-use-node-status-port
-          - --kubelet-insecure-tls=true
+        # kind kubelets use self-signed serving certificates
+        args:
+          - --kubelet-insecure-tls
   syncPolicy:
     automated:
       prune: true
@@ -30,6 +27,7 @@ spec:
     syncOptions:
       - Validate=false
       - CreateNamespace=true
+      - ServerSideApply=true
       - PrunePropagationPolicy=foreground
       - PruneLast=true
     retry:

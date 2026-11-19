@@ -3,14 +3,23 @@ kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
   - role: control-plane
-    # Port forward 8080 to 30443 on the host
+    # NodePorts published on the host. kube-proxy forwards a NodePort on any
+    # node, so mapping them on the control plane is enough.
     extraPortMappings:
-      # Port 30443 on the container
-      - containerPort: 30443
-        # Port 8080 on the host
-        hostPort: 8080
-        # TCP protocol
+      # Argo CD UI (argocd-server NodePort)
+      - containerPort: 30080
+        hostPort: 30080
         protocol: TCP
-        # Default listen address
-        listenAddress: 0.0.0.0
+      # Headlamp UI
+      - containerPort: 30090
+        hostPort: 30090
+        protocol: TCP
+      # Traefik HTTP, so http://<app>.localhost:8080 reaches your Ingresses
+      - containerPort: 30081
+        hostPort: 8080
+        protocol: TCP
+      # Traefik HTTPS
+      - containerPort: 30444
+        hostPort: 8443
+        protocol: TCP
   - role: worker

@@ -1,98 +1,85 @@
 # Kubernetes Playground Setup
 
-This script sets up a local Kubernetes playground environment using Kind (Kubernetes in Docker) with ArgoCD for GitOps-based application deployment.
+This script sets up a local Kubernetes playground using [kind](https://kind.sigs.k8s.io/) (Kubernetes in Docker) with [Argo CD](https://argo-cd.readthedocs.io/) for GitOps-based application deployment.
 
-## What the Script Does
+## What the script does
 
-1. **Creates Kind Cluster**: Sets up a local Kubernetes cluster named `k8s-playground` using the configuration in `./config/kind-config.yaml`
+1. **Creates a kind cluster** called `k8s-playground` (one control plane, one worker) from `./config/kind-config.yaml`, or reuses it if it already exists.
+2. **Installs Argo CD** from the vendored manifest in `./manifests/argocd.yaml` and waits for all its components to be ready.
+3. **Exposes the Argo CD UI** as a NodePort on 30080, published on the same port of your laptop.
+4. **Hands Argo CD one Application per component** from `./argocd/`. Argo CD installs them from their Helm charts and retries until they settle.
+5. **Prints the URLs and the Argo CD admin password.**
 
-2. **Installs ArgoCD**: 
-   - Creates the `argocd` namespace
-   - Deploys ArgoCD using manifests from `./manifests/argocd.yaml`
-   - Waits for all ArgoCD components to be ready (server, application controller, repo server, applicationset controller, notifications controller)
+Installed by default:
 
-3. **Configures ArgoCD Access**:
-   - Patches the ArgoCD server service to use NodePort for external access
-   - HTTP available on port 30080
-   - HTTPS available on port 30443
+| App | What it does |
+|---|---|
+| external-secrets-operator | Syncs secrets from an external store into Kubernetes |
+| cert-manager | Issues and renews certificates |
+| metrics-server | Makes `kubectl top` and autoscaling work |
+| traefik | Ingress controller (kind ships without one) |
+| falco | Runtime security, watches system calls |
+| victorialogs, victoriametrics | Log and metric storage |
+| headlamp | Web UI for the cluster |
+| kyverno | Policy engine |
 
-4. **Deploys Applications**:
-   - Installs a predefined list of applications via ArgoCD manifests
-   - Current applications: external-secrets-operator, cert-manager, metrics-server, nginx-ingress, falco
+`argocd/kube-state-metrics.yaml` is also available but not in the default list.
 
-5. **Retrieves Admin Password**:
-   - Waits for the initial admin secret to be created
-   - Displays the ArgoCD admin password
-
+> The community ingress-nginx controller was retired in March 2026 and the Kubernetes Dashboard project is archived, so this repo uses Traefik and Headlamp instead.
 
 ## Prerequisites
 
-- Docker installed and running
-- Kind CLI installed
-- kubectl installed
+- Docker running (Docker Desktop, OrbStack or Docker Engine)
+- [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) and [kubectl](https://kubernetes.io/docs/tasks/tools/)
+
+```bash
+brew install kind kubectl
+```
+
+Tested with kind v0.33.0 (Kubernetes v1.37) and Argo CD v3.6.2.
 
 ## Usage
 
-1. Make the scripts executable:
-   ```bash
-   chmod +x start-cluster.sh
-   chmod +x stop-cluster.sh
-   ```
-
-2. Run the script:
-   ```bash
-   ./start-cluster.sh
-   ```
-
-3. Access ArgoCD UI:
-   - URL: `http://<container_ip>:30080` or `https://<container_ip>:30443`
-   - Username: `admin`
-   - Password: (displayed by the script)
-  
-> ℹ️ **Info**  
-> If using orbstack instead of docker, you can access from:
-> ```bash
-> http://k8s-playground-control-plane.orb.local:30080
-> ```
-
-4. Stop and delete the cluster:
-   ```bash
-   ./stop-cluster.sh
-   ```
-
-## Creating Aliases
-
-To create convenient command aliases, use symbolic links:
-
 ```bash
-# Create start-cluster alias
-ln /full/path/to/your/start-cluster.sh /usr/local/bin/start-cluster
-
-# Create stop-cluster alias (assuming you have a stop script)
-ln /full/path/to/your/stop-cluster.sh /usr/local/bin/stop-cluster
-
-# Alternative: Add an alias to your ~/.bashrc (or ~/.zshrc if you use Zsh)
-alias start-cluster="/full/path/to/your/start-cluster.sh"
-alias stop-cluster="/full/path/to/your/stop-cluster.sh"
-
-Then reload your shell config:
-
-source ~/.bashrc
+./start-cluster.sh   # create everything
+./stop-cluster.sh    # delete the cluster
 ```
 
-After creating the aliases, you can simply run:
+Watch the applications roll out:
+
 ```bash
-start-cluster
-stop-cluster
+kubectl -n argocd get applications -w
 ```
 
-## Adding More Applications
+| Service | URL |
+|---|---|
+| Argo CD | <https://localhost:30080> (user `admin`, password printed by the script, self-signed certificate) |
+| Headlamp | <http://localhost:30090> |
+| Your Ingresses | `http://<host>.localhost:8080` and `https://<host>.localhost:8443`, through Traefik |
 
-To add new applications to the deployment:
+Headlamp logs in by itself with a lab-only `cluster-admin` service account. Don't reuse that setup on a real cluster.
 
-1. **Create ArgoCD Application Manifest**: Create a new YAML file in the `./argocd/` directory
+## Running it from anywhere
+
+Symlink the scripts into a folder in your `PATH`. The script resolves symlinks to find its config files.
+
+```bash
+ln -s "$PWD/start-cluster.sh" /usr/local/bin/start-cluster
+ln -s "$PWD/stop-cluster.sh" /usr/local/bin/stop-cluster
+```
+
+Or add aliases to `~/.zshrc` or `~/.bashrc`:
+
+```bash
+alias start-cluster="/full/path/to/kind-bootstrap-script/start-cluster.sh"
+alias stop-cluster="/full/path/to/kind-bootstrap-script/stop-cluster.sh"
+```
+
+## Adding more applications
+
+1. Create an Argo CD `Application` manifest in `./argocd/`, for example `./argocd/my-new-app.yaml`.
+
    ```yaml
-   # Example: ./argocd/my-new-app.yaml
    apiVersion: argoproj.io/v1alpha1
    kind: Application
    metadata:
@@ -102,22 +89,10 @@ To add new applications to the deployment:
      # ... your application configuration
    ```
 
-2. **Update the Script**: Add your application name to the `apps` array in the script:
-   ```bash
-   apps=(
-   "external-secrets-operator"
-   "cert-manager"
-   "metrics-server"
-   "nginx-ingress"
-   "my-new-app"  # Add your new app here
-   )
-   ```
-
-3. **Important**: The application name in the array must match the filename (without .yaml extension) in the `./argocd/` directory.
+2. Add its name to the `apps` array at the top of `start-cluster.sh`. The name must match the file name without `.yaml`.
 
 ## Troubleshooting
 
-- **Cluster creation fails**: Check if Docker is running and you have sufficient resources
-- **ArgoCD pods not ready**: Increase timeout values or check cluster resources
-- **Cannot access ArgoCD UI**: Verify the NodePort service patch was applied successfully
-- **Applications not deploying**: Check ArgoCD logs and ensure manifest files exist in the correct locations
+- **Cluster creation fails**: check that Docker is running and has enough memory (6 GB or more for the full stack).
+- **Port already in use**: something else is listening on 30080, 30090, 8080 or 8443. Change the `hostPort` values in `config/kind-config.yaml`.
+- **An application stays Progressing or Degraded**: `kubectl -n argocd describe application <name>` shows the reason.

@@ -11,25 +11,17 @@ spec:
   source:
     repoURL: https://falcosecurity.github.io/charts
     chart: falco
-    targetRevision: "6.0.1"
+    targetRevision: "9.2.2"
     helm:
       releaseName: falco
       values: |
         driver:
           enabled: true
-          kind: modern-bpf
+          kind: modern_ebpf
         falcosidekick:
           enabled: true
           webui:
             enabled: true
-        fakeEventGenerator:
-          enabled: false
-        falco:
-          rulesFile:
-            - /etc/falco/falco_rules.yaml
-            - /etc/falco/falco_rules.local.yaml
-            - /etc/falco/k8s_audit_rules.yaml
-            - /etc/falco/rules.d/custom-rules.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: falco-system

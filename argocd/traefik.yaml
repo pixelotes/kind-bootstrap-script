@@ -1,0 +1,48 @@
+---
+# Traefik as the ingress controller. kind ships without one, and the
+# community ingress-nginx controller was retired in March 2026.
+# Exposed as NodePorts that config/kind-config.yaml maps to the host:
+#   http://<name>.localhost:8080  -> NodePort 30081
+#   https://<name>.localhost:8443 -> NodePort 30444
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: traefik
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  destination:
+    namespace: traefik
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    repoURL: https://traefik.github.io/charts
+    chart: traefik
+    targetRevision: 42.4.1
+    helm:
+      values: |
+        service:
+          spec:
+            type: NodePort
+        ports:
+          web:
+            nodePort: 30081
+          websecure:
+            nodePort: 30444
+        ingressClass:
+          enabled: true
+          isDefaultClass: true
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

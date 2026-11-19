@@ -9,18 +9,14 @@ spec:
   source:
     repoURL: https://victoriametrics.github.io/helm-charts/
     chart: victoria-metrics-single
-    targetRevision: 0.23.0
+    targetRevision: 0.51.0
     helm:
       values: |
-        # No configuramos TLS ni Ingress en operator
+        # No TLS or Ingress, scrape the cluster with the built-in config
         server:
           ingress:
             enabled: false
-          tls:
-            enabled: false
           scrape:
-            enabled: true
-          vmServiceScrape:
             enabled: true
   destination:
     server: https://kubernetes.default.svc
@@ -31,6 +27,7 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
   ignoreDifferences:
     - group: admissionregistration.k8s.io
       kind: ValidatingWebhookConfiguration

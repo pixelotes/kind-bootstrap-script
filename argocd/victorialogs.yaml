@@ -9,16 +9,14 @@ spec:
   source:
     repoURL: https://victoriametrics.github.io/helm-charts/
     chart: victoria-logs-single
-    targetRevision: 0.11.4
+    targetRevision: 0.13.13
     helm:
       values: |
-        ingress:
-          enabled: false
-        tls:
-          enabled: false
+        server:
+          ingress:
+            enabled: false
         vector:
           enabled: true
-        extraArgs: ""
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
@@ -28,3 +26,4 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
