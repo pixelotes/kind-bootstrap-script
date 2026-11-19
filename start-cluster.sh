@@ -86,7 +86,8 @@ echo "========================"
 echo "= INSTALLING ARGO APPS ="
 echo "========================"
 
-for app in "${apps[@]}"; do
+# ${apps[@]+...} keeps an empty array working with set -u on macOS bash 3.2
+for app in ${apps[@]+"${apps[@]}"}; do
   echo "  - ${app}"
   kubectl apply -f "${SCRIPT_DIR}/argocd/${app}.yaml" >/dev/null
 done
